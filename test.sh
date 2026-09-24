@@ -1,14 +1,10 @@
-### test.sh
-
-```bash
 #!/bin/bash
-
-set -u
 
 echo "=========================================="
 echo "     STUDENT TABLE 3NF AUTOGRADING"
 echo "=========================================="
 
+# Find answers.sql
 ANSWER_FILE=$(find . -type f -name "answers.sql" | head -n 1)
 
 if [ -z "$ANSWER_FILE" ]; then
@@ -19,114 +15,129 @@ fi
 echo "PASS: answers.sql found."
 echo "File: $ANSWER_FILE"
 
+# Convert answer file to uppercase
 CONTENT=$(tr '[:lower:]' '[:upper:]' < "$ANSWER_FILE")
 
 # Check STUDENT table
-if ! echo "$CONTENT" | grep -Eq "CREATE[[:space:]]+TABLE[[:space:]]+STUDENT"; then
+if echo "$CONTENT" | grep -Eq "CREATE[[:space:]]+TABLE[[:space:]]+STUDENT"; then
+    echo "PASS: STUDENT table found."
+else
     echo "FAIL: STUDENT table not found."
     exit 1
 fi
-echo "PASS: STUDENT table found."
 
 # Check COURSE table
-if ! echo "$CONTENT" | grep -Eq "CREATE[[:space:]]+TABLE[[:space:]]+COURSE"; then
+if echo "$CONTENT" | grep -Eq "CREATE[[:space:]]+TABLE[[:space:]]+COURSE"; then
+    echo "PASS: COURSE table found."
+else
     echo "FAIL: COURSE table not found."
     exit 1
 fi
-echo "PASS: COURSE table found."
 
 # Check FACULTY table
-if ! echo "$CONTENT" | grep -Eq "CREATE[[:space:]]+TABLE[[:space:]]+FACULTY"; then
+if echo "$CONTENT" | grep -Eq "CREATE[[:space:]]+TABLE[[:space:]]+FACULTY"; then
+    echo "PASS: FACULTY table found."
+else
     echo "FAIL: FACULTY table not found."
     exit 1
 fi
-echo "PASS: FACULTY table found."
 
 # Check DEPARTMENT table
-if ! echo "$CONTENT" | grep -Eq "CREATE[[:space:]]+TABLE[[:space:]]+DEPARTMENT"; then
+if echo "$CONTENT" | grep -Eq "CREATE[[:space:]]+TABLE[[:space:]]+DEPARTMENT"; then
+    echo "PASS: DEPARTMENT table found."
+else
     echo "FAIL: DEPARTMENT table not found."
     exit 1
 fi
-echo "PASS: DEPARTMENT table found."
 
 # Check StudentID
-if ! echo "$CONTENT" | grep -q "STUDENTID"; then
+if echo "$CONTENT" | grep -q "STUDENTID"; then
+    echo "PASS: StudentID found."
+else
     echo "FAIL: StudentID not found."
     exit 1
 fi
-echo "PASS: StudentID found."
 
 # Check StudentName
-if ! echo "$CONTENT" | grep -q "STUDENTNAME"; then
+if echo "$CONTENT" | grep -q "STUDENTNAME"; then
+    echo "PASS: StudentName found."
+else
     echo "FAIL: StudentName not found."
     exit 1
 fi
-echo "PASS: StudentName found."
 
 # Check CourseID
-if ! echo "$CONTENT" | grep -q "COURSEID"; then
+if echo "$CONTENT" | grep -q "COURSEID"; then
+    echo "PASS: CourseID found."
+else
     echo "FAIL: CourseID not found."
     exit 1
 fi
-echo "PASS: CourseID found."
 
 # Check CourseName
-if ! echo "$CONTENT" | grep -q "COURSENAME"; then
+if echo "$CONTENT" | grep -q "COURSENAME"; then
+    echo "PASS: CourseName found."
+else
     echo "FAIL: CourseName not found."
     exit 1
 fi
-echo "PASS: CourseName found."
 
 # Check FacultyID
-if ! echo "$CONTENT" | grep -q "FACULTYID"; then
+if echo "$CONTENT" | grep -q "FACULTYID"; then
+    echo "PASS: FacultyID found."
+else
     echo "FAIL: FacultyID not found."
     exit 1
 fi
-echo "PASS: FacultyID found."
 
 # Check FacultyName
-if ! echo "$CONTENT" | grep -q "FACULTYNAME"; then
+if echo "$CONTENT" | grep -q "FACULTYNAME"; then
+    echo "PASS: FacultyName found."
+else
     echo "FAIL: FacultyName not found."
     exit 1
 fi
-echo "PASS: FacultyName found."
 
 # Check DepartmentID
-if ! echo "$CONTENT" | grep -q "DEPARTMENTID"; then
+if echo "$CONTENT" | grep -q "DEPARTMENTID"; then
+    echo "PASS: DepartmentID found."
+else
     echo "FAIL: DepartmentID not found."
     exit 1
 fi
-echo "PASS: DepartmentID found."
 
 # Check DepartmentName
-if ! echo "$CONTENT" | grep -q "DEPARTMENTNAME"; then
+if echo "$CONTENT" | grep -q "DEPARTMENTNAME"; then
+    echo "PASS: DepartmentName found."
+else
     echo "FAIL: DepartmentName not found."
     exit 1
 fi
-echo "PASS: DepartmentName found."
 
-# Check primary key
+# Check Primary Keys
 PK_COUNT=$(echo "$CONTENT" | grep -Eic "PRIMARY[[:space:]]+KEY")
 
-if [ "$PK_COUNT" -lt 4 ]; then
-    echo "FAIL: At least 4 primary key definitions are expected."
+if [ "$PK_COUNT" -ge 4 ]; then
+    echo "PASS: At least 4 primary keys found."
+else
+    echo "FAIL: At least 4 primary keys are required."
     exit 1
 fi
 
-echo "PASS: Primary keys found."
-
-# Check foreign keys
+# Check Foreign Keys
 FK_COUNT=$(echo "$CONTENT" | grep -Eic "FOREIGN[[:space:]]+KEY")
 
-if [ "$FK_COUNT" -lt 3 ]; then
-    echo "FAIL: At least 3 foreign key definitions are expected."
+if [ "$FK_COUNT" -ge 3 ]; then
+    echo "PASS: At least 3 foreign keys found."
+else
+    echo "FAIL: At least 3 foreign keys are required."
     exit 1
 fi
 
-echo "PASS: Foreign keys found."
-
-# Check that original denormalized table is not created
-if echo "$CONTENT" | grep -Eq "CREATE[[:space:]]+TABLE[[:space:]]+STUDENT[[:space:]]*\([^)]*COURSENAME[^)]*FACULTYNAME[^)]*DEPARTMENTNAME"; then
+# Check that original denormalized columns are not all in STUDENT
+if echo "$CONTENT" | grep -Eq \
+"CREATE[[:space:]]+TABLE[[:space:]]+STUDENT.*COURSENAME.*FACULTYNAME.*DEPARTMENTNAME"
+then
     echo "FAIL: Original denormalized structure detected."
     exit 1
 fi
@@ -138,59 +149,3 @@ echo "       ALL 3NF CHECKS PASSED"
 echo "=========================================="
 
 exit 0
-```
-
----
-
-### `.github/workflows/normalization_3nf.yml`
-
-```yaml
-name: Student Table 3NF Autograding
-
-on:
-  push:
-  pull_request:
-  workflow_dispatch:
-
-jobs:
-  autograding:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Show Repository Structure
-        run: |
-          echo "======================================"
-          echo "REPOSITORY FILES"
-          echo "======================================"
-          find . -maxdepth 5 -type f | sort
-          echo "======================================"
-
-      - name: Find and Run Test
-        run: |
-          echo "Searching for test.sh..."
-
-          TEST_FILE=$(find . -type f -name "test.sh" | head -n 1)
-
-          if [ -z "$TEST_FILE" ]; then
-            echo "ERROR: test.sh not found."
-            exit 1
-          fi
-
-          echo "PASS: test.sh found at:"
-          echo "$TEST_FILE"
-
-          chmod +x "$TEST_FILE"
-
-          TEST_DIR=$(dirname "$TEST_FILE")
-
-          echo "Test directory:"
-          echo "$TEST_DIR"
-
-          cd "$TEST_DIR"
-
-          echo "Running 3NF autograding..."
-          ./test.sh
-```
