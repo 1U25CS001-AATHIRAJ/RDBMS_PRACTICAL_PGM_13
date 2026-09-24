@@ -1,0 +1,51 @@
+name: Student Table 3NF Autograding
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  autograding:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Show Repository Structure
+        run: |
+          echo "=========================================="
+          echo "       REPOSITORY FILES"
+          echo "=========================================="
+          find . -maxdepth 5 -type f | sort
+          echo "=========================================="
+
+      - name: Find and Run Test
+        run: |
+          echo "Searching for test.sh..."
+
+          TEST_FILE=$(find . -type f -name "test.sh" | head -n 1)
+
+          if [ -z "$TEST_FILE" ]; then
+              echo "FAIL: test.sh not found."
+              exit 1
+          fi
+
+          echo "PASS: test.sh found at:"
+          echo "$TEST_FILE"
+
+          chmod +x "$TEST_FILE"
+
+          TEST_DIR=$(dirname "$TEST_FILE")
+
+          echo "Test directory:"
+          echo "$TEST_DIR"
+
+          cd "$TEST_DIR"
+
+          echo "=========================================="
+          echo "       RUNNING 3NF AUTOGRADING"
+          echo "=========================================="
+
+          ./test.sh
